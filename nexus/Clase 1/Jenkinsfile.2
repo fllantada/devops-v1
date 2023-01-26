@@ -1,0 +1,28 @@
+pipeline {
+    agent any //cualquier agent
+    stages {
+        stage('dev') {
+            steps {
+              echo "building in dev env!"
+            }
+        }
+        stage('prod') {
+            input {
+                message "Deploy in production?"
+                ok "Deploy"
+                submitter "Debjeet Bhowmik"
+                parameters {
+                    string(name: 'Version', defaultValue: 'v1.0.4', description: 'Build version?')
+                }
+            }
+            steps {
+                echo "deploying to production, version - $VERSION"
+                withCredentials([usernamePassword(credentialsId: 'ssh', usernameVariable: 'USUARIO', passwordVariable: 'CONTRASENIA')]) {
+                    sh '''
+                        sshpass -p ${CONTRASENIA} ssh -o StrictHostKeyChecking=no ${USUARIO}@172.17.0.1 'ls && hostname'
+                    '''
+                    }
+            }
+        }
+    }
+}
